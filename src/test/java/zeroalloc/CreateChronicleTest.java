@@ -8,8 +8,6 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Class to demonstrate zero garbage creation.
@@ -17,21 +15,21 @@ import java.util.Map;
  * To run in JFR use these options for best results
  * -XX:+UnlockCommercialFeatures -XX:+FlightRecorder
  */
-public class ZeroAllocationDemoTest {
+public class CreateChronicleTest {
     private static final int ITERATIONS = 10_000_000;
 
     @Test
     public void demoChronicleMap() throws IOException, InterruptedException {
         System.out.println("----- CHRONICLE MAP ------------------------");
-        File file = new File("/tmp/chronicle-map-" + System.nanoTime() + ".map");
-        file.deleteOnExit();
+        File file = new File("/tmp/chronicle-map.map");
+        //file.deleteOnExit();
 
         ChronicleMapBuilder<IntValue, BondVOInterface> builder =
                 ChronicleMapBuilder.of(IntValue.class, BondVOInterface.class)
                         .entries(ITERATIONS);
 
         try (ChronicleMap<IntValue, BondVOInterface> map =
-                     builder.create()) {
+                     builder.createPersistedTo(file)) {
             final BondVOInterface value = map.newValueInstance();
             final IntValue key = map.newKeyInstance();
             long actualQuantity = 0;
@@ -65,43 +63,8 @@ public class ZeroAllocationDemoTest {
             printMemUsage();
 
         } finally {
-            file.delete();
+   //         file.delete();
         }
-    }
-
-    @Test
-    public void testOnHeapMap(){
-        System.out.println("----- HASHMAP ------------------------");
-        Map<Integer, BondVOImpl> map = new HashMap<>(ITERATIONS);
-        long actualQuantity = 0;
-        long expectedQuantity = 0;
-        long time = System.currentTimeMillis();
-
-        System.out.println("*** Entering critical section ***");
-
-        for (int i = 0; i < ITERATIONS; i++) {
-            BondVOImpl bondVo = new BondVOImpl();
-            bondVo.setQuantity(i);
-            map.put(Integer.valueOf(i), bondVo);
-            expectedQuantity += i;
-        }
-
-
-        long putTime = System.currentTimeMillis()-time;
-        time = System.currentTimeMillis();
-
-        for (int i = 0; i < map.size(); i++) {
-            actualQuantity += map.get(i).getQuantity();
-        }
-
-        System.out.println("*** Exiting critical section ***");
-
-        System.out.println("Time for putting " + putTime);
-        System.out.println("Time for getting " + (System.currentTimeMillis()-time));
-
-        Assert.assertEquals(expectedQuantity, actualQuantity);
-
-        printMemUsage();
     }
 
     public static void printMemUsage(){

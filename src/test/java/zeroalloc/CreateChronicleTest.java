@@ -22,7 +22,7 @@ public class CreateChronicleTest {
     public void demoChronicleMap() throws IOException, InterruptedException {
         System.out.println("----- CHRONICLE MAP ------------------------");
         File file = new File("/tmp/chronicle-map.map");
-        //file.deleteOnExit();
+        file.deleteOnExit();
 
         ChronicleMapBuilder<IntValue, BondVOInterface> builder =
                 ChronicleMapBuilder.of(IntValue.class, BondVOInterface.class)
@@ -63,7 +63,7 @@ public class CreateChronicleTest {
             printMemUsage();
 
         } finally {
-   //         file.delete();
+            file.delete();
         }
     }
 
